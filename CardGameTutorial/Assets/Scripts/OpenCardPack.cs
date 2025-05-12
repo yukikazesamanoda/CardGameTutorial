@@ -30,9 +30,9 @@ public class OpenCardPack : MonoBehaviour
     public void OnClickOpen()
     {
         ClearPool();
-        if (pdm.totalCoins >= 300)
+        if (pdm.totalCoins >= 0)
         {
-            pdm.totalCoins -= 300;
+            pdm.totalCoins -= 0;
 
 
             for (int i = 0; i < 5; i++)

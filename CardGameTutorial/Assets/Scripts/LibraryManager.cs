@@ -17,7 +17,6 @@ public class LibraryManager : MonoBehaviour
         pdm = playerData.GetComponent<PlayerDataManager>();
         cardData = playerData.GetComponent<CardData>();
         UpdateLibrary();
-
     }
 
     // Update is called once per frame
@@ -26,8 +25,14 @@ public class LibraryManager : MonoBehaviour
 
     }
 
-    void UpdateLibrary()
+    public void UpdateLibrary()
     {
+        // 清空之前的显示
+        foreach (Transform child in panel.transform)
+        {
+            Destroy(child.gameObject);
+        }
+
         for (int i = 0; i < pdm.playerCards.Length; i++)
         {
             if (pdm.playerCards[i] != 0)
@@ -38,6 +43,5 @@ public class LibraryManager : MonoBehaviour
                 newCard.GetComponent<UICardCounter>().counter.text = pdm.playerCards[i].ToString();
             }
         }
-
     }
 }

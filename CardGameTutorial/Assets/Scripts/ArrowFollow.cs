@@ -7,7 +7,7 @@ public class ArrowFollow : MonoBehaviour
 {
     public Vector2 startPoint;
     RectTransform arrow;
-    Vector2 endPoint;
+    public Vector2 endPoint;
 
     float arrowLength;
     Vector2 arrowPosition;

@@ -48,7 +48,7 @@ public class CardDisplay : MonoBehaviour
     }
     public void ShowCard()
     {
-        backImage.SetActive(false);
+        //backImage.SetActive(false);
 
         cardName.text = card.cardName;
         if (card is MonsterCard) // 如果是怪兽卡，就将攻击力显示为红色，生命值为绿色

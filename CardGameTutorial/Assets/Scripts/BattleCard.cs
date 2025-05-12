@@ -12,7 +12,7 @@ public class BattleCard : MonoBehaviour, IPointerDownHandler
     //public BattleManager BattleManager;
 
     public CardState cardState = CardState.inPlayerHand;
-
+    public bool isFirstTurnSummon = false;
     public bool hasAttacked;
 
 
@@ -45,15 +45,14 @@ public class BattleCard : MonoBehaviour, IPointerDownHandler
         }
         else if (cardState == CardState.inPlayerBlock && BattleManager.Instance.currentPhase == GamePhase.playerAction)
         {
-            if (!hasAttacked)
+            if (!hasAttacked && !GetComponent<BattleCard>().isFirstTurnSummon) // 新增判断条件
             {
                 BattleManager.Instance.AttackRequst(transform.position, 0, transform.gameObject);
             }
-
         }
         else if (cardState == CardState.inEnemyBlock && BattleManager.Instance.currentPhase == GamePhase.enemyAction)
         {
-            if (!hasAttacked)
+            if (!hasAttacked && !GetComponent<BattleCard>().isFirstTurnSummon) // 新增判断条件
             {
                 BattleManager.Instance.AttackRequst(transform.position, 1, transform.gameObject);
             }

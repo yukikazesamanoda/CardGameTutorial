@@ -6,11 +6,10 @@ using UnityEngine.EventSystems;
 public class AttackTarget : MonoBehaviour, IPointerClickHandler
 {
     public bool attackable;
-    //public BattleManager BattleManager;
     // Start is called before the first frame update
     void Start()
     {
-        //BattleManager = GameObject.Find("AIBattleManager").GetComponent<BattleManager>();
+        attackable = false;
     }
 
     // Update is called once per frame
