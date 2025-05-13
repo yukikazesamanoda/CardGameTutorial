@@ -23,7 +23,6 @@ public enum GameEvent
 // BattleManager 类继承自 MonoSingleton，用于管理战斗流程
 public class BattleManager : MonoSingleton<BattleManager>
 {
-
     public GameObject playerData; // 玩家数据对象
     public GameObject enemyData; // 敌人数据对象
     public GameObject playerHands; // 玩家手牌对象
@@ -51,7 +50,7 @@ public class BattleManager : MonoSingleton<BattleManager>
     public int playerSummonCount;
     public int maxEnemySummonCount;
     public int enemySummonCount;
-    public bool isFirstTurn=true;
+
     // 当前游戏阶段
     public GamePhase currentPhase = GamePhase.playerDraw;
 
@@ -72,7 +71,6 @@ public class BattleManager : MonoSingleton<BattleManager>
     {
         // 开始游戏
         GameStart();
-
     }
 
     // 每帧调用一次的方法，可用于处理需要实时更新的逻辑
@@ -106,29 +104,26 @@ public class BattleManager : MonoSingleton<BattleManager>
     {
         if (_player == 0)
         {
-             {
-                // 玩家抽卡
-                for (int i = 0; i < _number; i++)
+            // 玩家抽卡
+            for (int i = 0; i < _number; i++)
+            {
+                // 实例化一张新卡牌
+                GameObject newCard = GameObject.Instantiate(cardPrefab, playerHands.transform);
+                // 设置新卡牌的信息
+                newCard.GetComponent<CardDisplay>().card = playerDeckList[0];
+                // 从玩家卡组中移除已抽取的卡牌
+                playerDeckList.RemoveAt(0);
+                // 设置新卡牌的状态为玩家手牌
+                newCard.GetComponent<BattleCard>().cardState = CardState.inPlayerHand;
+                // 如果需要显示卡背
+                if (_back)
                 {
-                    // 实例化一张新卡牌
-                    GameObject newCard = GameObject.Instantiate(cardPrefab, playerHands.transform);
-                    // 设置新卡牌的信息
-                    newCard.GetComponent<CardDisplay>().card = playerDeckList[0];
-                    // 从玩家卡组中移除已抽取的卡牌
-                    playerDeckList.RemoveAt(0);
-                    // 设置新卡牌的状态为玩家手牌
-                    newCard.GetComponent<BattleCard>().cardState = CardState.inPlayerHand;
-                    // 如果需要显示卡背
-                    if (_back)
-                    {
-                        newCard.GetComponent<CardDisplay>().back = true;
-                    }
+                    newCard.GetComponent<CardDisplay>().back = true;
                 }
                 // 如果需要改变游戏阶段
                 if (_state)
                 {
                     currentPhase = GamePhase.playerAction;
-               
                     // 触发阶段变更事件
                     phaseChangeEvent.Invoke();
                 }
@@ -136,38 +131,30 @@ public class BattleManager : MonoSingleton<BattleManager>
         }
         else if (_player == 1)
         {
-           
+            // 敌人抽卡
+            for (int i = 0; i < _number; i++)
             {
-
-                // 敌人抽卡
-                for (int i = 0; i < _number; i++)
+                // 实例化一张新卡牌
+                GameObject newCard = GameObject.Instantiate(cardPrefab, enemyHands.transform);
+                // 设置新卡牌的信息
+                newCard.GetComponent<CardDisplay>().card = enemyDeckList[0];
+                // 从敌人卡组中移除已抽取的卡牌
+                enemyDeckList.RemoveAt(0);
+                // 设置新卡牌的状态为敌人手牌
+                newCard.GetComponent<BattleCard>().cardState = CardState.inEnemyHand;
+                // 如果需要显示卡背
+                if (_back)
                 {
-                    // 实例化一张新卡牌
-                    GameObject newCard = GameObject.Instantiate(cardPrefab, enemyHands.transform);
-                    // 设置新卡牌的信息
-                    newCard.GetComponent<CardDisplay>().card = enemyDeckList[0];
-                    // 从敌人卡组中移除已抽取的卡牌
-                    enemyDeckList.RemoveAt(0);
-                    // 设置新卡牌的状态为敌人手牌
-                    newCard.GetComponent<BattleCard>().cardState = CardState.inEnemyHand;
-
-                    // 如果需要显示卡背
-                    if (_back)
-                    {
-                        newCard.GetComponent<CardDisplay>().back = true;
-                    }
-
+                    newCard.GetComponent<CardDisplay>().back = true;
                 }
                 // 如果需要改变游戏阶段
                 if (_state)
                 {
                     currentPhase = GamePhase.enemyAction;
-               
                     // 触发阶段变更事件
                     phaseChangeEvent.Invoke();
                 }
             }
-
         }
     }
 
@@ -181,20 +168,17 @@ public class BattleManager : MonoSingleton<BattleManager>
     // 结束回合的方法，处理回合结束时的逻辑
     public void TurnEnd()
     {
+        // 如果有箭头对象，销毁它
         if (arrow != null)
         {
             Destroy(arrow);
         }
         if (currentPhase == GamePhase.playerAction)
         {
+            // 玩家行动阶段结束，进入敌人抽卡阶段
             currentPhase = GamePhase.enemyDraw;
+            // 重置敌人的召唤次数
             enemySummonCount = maxEnemySummonCount;
-
-            // 第一回合结束，将 isFirstTurn 设置为 false
-            if (isFirstTurn)
-            {
-                isFirstTurn = false;
-            }
 
             // 可以在这里添加玩家图标和敌人图标可攻击状态的设置逻辑，此处注释掉
             //playerIcon.GetComponent<AttackTarget>().attackable = true;
@@ -220,15 +204,10 @@ public class BattleManager : MonoSingleton<BattleManager>
         }
         else if (currentPhase == GamePhase.enemyAction)
         {
+            // 敌人行动阶段结束，进入玩家抽卡阶段
             currentPhase = GamePhase.playerDraw;
+            // 重置玩家的召唤次数
             playerSummonCount = maxPlayerSummonCount;
-
-            // 第一回合结束，将 isFirstTurn 设置为 false
-            if (isFirstTurn)
-            {
-                isFirstTurn = false;
-            }
-
 
             // 可以在这里添加玩家图标和敌人图标可攻击状态的设置逻辑，此处注释掉
             //playerIcon.GetComponent<AttackTarget>().attackable = false;
@@ -276,7 +255,6 @@ public class BattleManager : MonoSingleton<BattleManager>
                 if (block.GetComponent<CardBlock>().monsterCard == null)
                 {
                     block.GetComponent<CardBlock>().SetSummon();
-
                 }
             }
             // 记录等待召唤的怪兽和玩家编号
@@ -320,41 +298,40 @@ public class BattleManager : MonoSingleton<BattleManager>
     /// <param name="_block">要召唤到的格子节点</param>
     public void Summon(GameObject _monster, int _id, Transform _block)
     {
+        // 将怪兽卡的父对象设置为指定格子
         _monster.transform.SetParent(_block);
+        // 显示怪兽卡信息
         _monster.GetComponent<CardDisplay>().ShowCard();
+        // 将怪兽卡赋值给格子的 monsterCard 属性
         _block.GetComponent<CardBlock>().monsterCard = _monster;
+        // 设置怪兽卡的位置为格子的本地原点
         _monster.transform.localPosition = Vector3.zero;
         if (_id == 0)
         {
+            // 玩家召唤，设置怪兽卡状态为玩家怪兽区
             _monster.GetComponent<BattleCard>().cardState = CardState.inPlayerBlock;
+            // 玩家召唤次数减一
             playerSummonCount--;
+            // 关闭玩家怪兽区所有格子的召唤提示
             foreach (var block in playerBlocks)
             {
                 block.GetComponent<CardBlock>().CloseAll();
             }
-
-            // 如果是第一回合且是先手玩家召唤的怪兽，标记为第一回合召唤
-            if (isFirstTurn && currentPhase == GamePhase.playerAction)
-            {
-                _monster.GetComponent<BattleCard>().isFirstTurnSummon = true;
-            }
         }
         else if (_id == 1)
         {
+            // 敌人召唤，设置怪兽卡状态为敌人怪兽区
             _monster.GetComponent<BattleCard>().cardState = CardState.inEnemyBlock;
+            // 敌人召唤次数减一
             enemySummonCount--;
+            // 关闭敌人怪兽区所有格子的召唤提示
             foreach (var block in enemyBlocks)
             {
                 block.GetComponent<CardBlock>().CloseAll();
             }
-
-            // 如果是第一回合且是先手玩家召唤的怪兽，标记为第一回合召唤
-            if (isFirstTurn && currentPhase == GamePhase.enemyAction)
-            {
-                _monster.GetComponent<BattleCard>().isFirstTurnSummon = true;
-            }
         }
 
+        // 如果有箭头对象，销毁它
         if (arrow != null)
         {
             Destroy(arrow);
@@ -391,7 +368,6 @@ public class BattleManager : MonoSingleton<BattleManager>
             // 这里可以根据实际情况调整箭头的显示逻辑
             arrow.GetComponent<ArrowFollow>().endPoint = enemyIconToTarget.transform.position;
             enemyIconToTarget.GetComponent<AttackTarget>().attackable = true;
-            
         }
 
         attackingMonster = _monster;
@@ -426,13 +402,11 @@ public class BattleManager : MonoSingleton<BattleManager>
             {
                 enemyHealthPoint -= attackMonster.attack;
                 Debug.Log($"玩家攻击对方玩家，对方剩余生命值: {enemyHealthPoint}");
-               
             }
             else
             {
                 playerHealthPoint -= attackMonster.attack;
                 Debug.Log($"敌方攻击玩家，玩家剩余生命值: {playerHealthPoint}");
-               
             }
         }
         else
@@ -478,22 +452,7 @@ public class BattleManager : MonoSingleton<BattleManager>
         DrawCard(0, 5);
         DrawCard(1, 5);
         // 设置当前游戏阶段为玩家抽卡阶段
-
-        if (Random.value < 0.5f)
-        {
-            isFirstTurn = true;
-            currentPhase = GamePhase.playerAction;
-
-            Debug.Log("硬币正面，下方先手");
-        }
-        else
-        {
-            isFirstTurn = true;
-            currentPhase = GamePhase.enemyAction;
-
-            Debug.Log("硬币反面，上方先手");
-        }
-                 
+        currentPhase = GamePhase.playerDraw;
     }
 
     // 从数据中读取卡组的方法
