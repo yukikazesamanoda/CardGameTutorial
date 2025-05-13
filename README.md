@@ -10,3 +10,4 @@ A 2d card game tutorial by Unity game engine
 Branch：
 Main 主要分支，完整的卡牌游戏系统
 dev 正在开发的新功能
+nanoda
