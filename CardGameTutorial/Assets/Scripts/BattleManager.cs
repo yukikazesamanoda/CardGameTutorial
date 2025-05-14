@@ -31,7 +31,7 @@ public class BattleManager : MonoSingleton<BattleManager>
     public GameObject[] enemyBlocks; // 敌人怪兽区的格子数组
     public List<Card> playerDeckList = new List<Card>(); // 玩家卡组列表
     public List<Card> enemyDeckList = new List<Card>(); // 敌人卡组列表
-
+    public int currentTurn = 1;//计数器
     public GameObject cardPrefab; // 卡牌预制体
 
     public GameObject arrowPrefab; // 召唤指示箭头预制体
@@ -76,7 +76,29 @@ public class BattleManager : MonoSingleton<BattleManager>
     // 每帧调用一次的方法，可用于处理需要实时更新的逻辑
     void Update()
     {
+        if (Input.GetMouseButtonDown(1))
+        {
+            CancelSummonOrAttack();
+        }
+    }
 
+    //取消攻击/召唤的方法
+    private void CancelSummonOrAttack()
+    {
+        if (arrow != null)
+        {
+            Destroy(arrow);
+        }
+        waitingMonster = null;
+        attackingMonster = null;
+        foreach (var block in playerBlocks)
+        {
+            block.GetComponent<CardBlock>().CloseAll();
+        }
+        foreach (var block in enemyBlocks)
+        {
+            block.GetComponent<CardBlock>().CloseAll();
+        }
     }
 
     // 玩家抽卡方法，只有在玩家抽卡阶段才能调用
@@ -168,11 +190,21 @@ public class BattleManager : MonoSingleton<BattleManager>
     // 结束回合的方法，处理回合结束时的逻辑
     public void TurnEnd()
     {
+
+
         // 如果有箭头对象，销毁它
         if (arrow != null)
         {
-            Destroy(arrow);
+            CancelSummonOrAttack();
         }
+
+        // 检查是玩家还未抽卡
+        if (currentPhase == GamePhase.playerDraw||currentPhase==GamePhase.enemyDraw)
+        {
+            Debug.Log("玩家未抽卡，不能结束回合！");
+            return; // 直接返回，不执行后续回合结束逻辑
+        }
+
         if (currentPhase == GamePhase.playerAction)
         {
             // 玩家行动阶段结束，进入敌人抽卡阶段
@@ -221,6 +253,7 @@ public class BattleManager : MonoSingleton<BattleManager>
                     block.GetComponent<CardBlock>().monsterCard.GetComponent<AttackTarget>().attackable = false;
                     block.GetComponent<CardBlock>().monsterCard.GetComponent<BattleCard>().hasAttacked = false;
                 }
+                
             }
             // 设置敌人怪兽区的怪兽可攻击状态
             foreach (var block in enemyBlocks)
@@ -232,7 +265,10 @@ public class BattleManager : MonoSingleton<BattleManager>
             }
         }
         // 触发阶段变更事件
+        currentTurn++;
         phaseChangeEvent.Invoke();
+        Debug.Log("当前回合数" +currentTurn);
+
     }
 
     // 召唤请求方法，点击手牌时触发
@@ -341,11 +377,17 @@ public class BattleManager : MonoSingleton<BattleManager>
     // 攻击请求方法，点击怪兽卡时触发
     public void AttackRequst(Vector2 _startPoint, int _player, GameObject _monster)
     {
+        if (currentTurn == 1)
+        {
+            Debug.Log("第一回合不能攻击！");
+            return; // 直接返回，不执行后续攻击逻辑
+        }
+
         if (arrow == null)
         {
             arrow = GameObject.Instantiate(attackPrefab, canvas);
         }
-
+        
         arrow.GetComponent<ArrowFollow>().SetStartPoint(_startPoint);
 
         // 直接攻击条件
@@ -452,7 +494,10 @@ public class BattleManager : MonoSingleton<BattleManager>
         DrawCard(0, 5);
         DrawCard(1, 5);
         // 设置当前游戏阶段为玩家抽卡阶段
+        Random.Range(0, 1);
         currentPhase = GamePhase.playerDraw;
+        currentPhase = GamePhase.enemyDraw;
+        
     }
 
     // 从数据中读取卡组的方法
